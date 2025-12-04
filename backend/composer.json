@@ -15,6 +15,7 @@
         "symfony/yaml": "7.4.*"
     },
     "require-dev": {
+        "phpmd/phpmd": "^2.15"
     },
     "config": {
         "allow-plugins": {
