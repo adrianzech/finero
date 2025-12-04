@@ -9,6 +9,7 @@ import SidebarMenuItem from './MenuItem.vue'
 import { getActivatedItemParentKeys } from './helpers'
 
 const route = useRoute()
+const authStore = useAuthStore()
 
 const props = defineProps<{
   menuItems: ISidebarMenuItem[]
@@ -107,10 +108,10 @@ onMounted(() => {
           </div>
           <div class="grow -space-y-0.5">
             <p class="text-sm font-medium">
-              User
+              {{ [authStore.user?.firstName, authStore.user?.lastName].filter(Boolean).join(' ') || 'User' }}
             </p>
             <p class="text-base-content/60 text-xs">
-              user@example.com
+              {{ authStore.user?.email || 'user@example.com' }}
             </p>
           </div>
           <span class="iconify lucide--chevrons-up-down text-base-content/60 size-4" />
@@ -121,7 +122,7 @@ onMounted(() => {
           class="dropdown-content menu bg-base-100 rounded-box shadow-base-content/4 mb-1 w-48 p-1 shadow-[0px_-10px_40px_0px]"
         >
           <li>
-            <a class="text-error hover:bg-error/10">
+            <a class="text-error hover:bg-error/10" @click="authStore.logout()">
               <span class="iconify lucide--log-out size-4" />
               Sign out
             </a>
