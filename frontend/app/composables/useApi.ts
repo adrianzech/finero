@@ -1,9 +1,12 @@
-export const useApi = (request: unknown, opts: unknown = {}) => {
+import type { UseFetchOptions } from 'nuxt/app'
+
+export const useApi = <T>(request: string, opts: UseFetchOptions<T> = {}) => {
   const config = useRuntimeConfig()
   const authStore = useAuthStore()
 
-  return useFetch(request, {
+  return useFetch<T>(request, {
     baseURL: config.public.apiUrl,
+    credentials: 'include',
     ...opts,
     async onRequest({ options }) {
       if (authStore.token) {

@@ -12,4 +12,15 @@ export const menuItems: ISidebarMenuItem[] = [
     label: 'Dashboard',
     url: '/',
   },
+  {
+    id: 'recurring-label',
+    isTitle: true,
+    label: 'Recurring',
+  },
+  {
+    id: 'recurring-expenses',
+    icon: 'lucide--repeat-2',
+    label: 'Recurring Expenses',
+    url: '/recurring/expenses',
+  },
 ]
