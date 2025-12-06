@@ -27,6 +27,7 @@ parameters:
         - '%currentWorkingDirectory%/tests/bootstrap.php'
 
     ignoreErrors:
+        - '#Property App\\Entity\\.*::\$id \(int\|null\) is never assigned int so it can be removed from the property type.#'
 
     # PHPStan caches results for faster subsequent runs
     # Cache directory, typically inside %tmpDir%
