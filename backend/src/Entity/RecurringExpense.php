@@ -139,7 +139,22 @@ class RecurringExpense
 
     public function getNextBillingDate(): ?\DateTimeImmutable
     {
-        return $this->nextBillingDate;
+        if ($this->nextBillingDate === null || $this->interval === null) {
+            return $this->nextBillingDate;
+        }
+
+        $today = new \DateTimeImmutable('today');
+        $nextBillingDate = $this->nextBillingDate;
+
+        while ($nextBillingDate < $today) {
+            $nextBillingDate = $this->advanceBillingDate($nextBillingDate);
+        }
+
+        if ($nextBillingDate !== $this->nextBillingDate) {
+            $this->nextBillingDate = $nextBillingDate;
+        }
+
+        return $nextBillingDate;
     }
 
     public function setNextBillingDate(\DateTimeImmutable $nextBillingDate): static
@@ -173,5 +188,16 @@ class RecurringExpense
         $this->notes = $notes;
 
         return $this;
+    }
+
+    private function advanceBillingDate(\DateTimeImmutable $billingDate): \DateTimeImmutable
+    {
+        return match ($this->interval) {
+            RecurringInterval::WEEKLY => $billingDate->modify('+1 week'),
+            RecurringInterval::MONTHLY => $billingDate->modify('+1 month'),
+            RecurringInterval::QUARTERLY => $billingDate->modify('+3 months'),
+            RecurringInterval::YEARLY => $billingDate->modify('+1 year'),
+            default => $billingDate,
+        };
     }
 }
