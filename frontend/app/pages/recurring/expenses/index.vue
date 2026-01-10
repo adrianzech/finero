@@ -13,7 +13,7 @@ import {
 } from '@tanstack/vue-table'
 
 import PageTitle from '~/components/PageTitle.vue'
-import type { RecurringExpense, RecurringExpenseCollection } from '~/types/recurring'
+import type { RecurringCategory, RecurringCategoryCollection, RecurringExpense, RecurringExpenseCollection, RecurringInterval } from '~/types/recurring'
 
 definePageMeta({
   layout: 'default',
@@ -27,6 +27,7 @@ const config = useRuntimeConfig()
 const expenses = ref<RecurringExpense[]>([])
 const pending = ref(false)
 const error = ref<Error | null>(null)
+const categories = ref<RecurringCategory[]>([])
 
 // Computed total items from data (since we fetch all)
 const totalItems = computed(() => expenses.value.length)
@@ -60,6 +61,20 @@ const intervalLabels: Record<RecurringInterval, string> = {
   yearly: 'Yearly',
 }
 
+const getCategoryIri = (category: RecurringCategory) => {
+  return category['@id'] ?? (category.id ? `/api/recurring_categories/${category.id}` : '')
+}
+
+const categoriesByIri = computed(() => {
+  return new Map(categories.value.map((category) => [getCategoryIri(category), category]))
+})
+
+const resolveCategoryName = (value: RecurringExpense['category']) => {
+  if (!value) return ''
+  if (typeof value === 'object') return value.name ?? ''
+  return categoriesByIri.value.get(value)?.name ?? ''
+}
+
 const formatAmount = (expense: RecurringExpense) => {
   const amountNumber = Number(expense.amount)
   // If the amount is not a valid number, display it as-is with its currency.
@@ -91,6 +106,11 @@ const columns = [
     id: 'name',
     header: 'Name',
     cell: (info) => info.getValue(),
+  }),
+  columnHelper.accessor('category', {
+    id: 'category',
+    header: 'Category',
+    cell: (info) => resolveCategoryName(info.getValue()) || '—',
   }),
   columnHelper.accessor('amount', {
     id: 'amount',
@@ -134,7 +154,12 @@ onMounted(() => {
     try {
       const parsed = JSON.parse(saved)
       if (parsed.columnVisibility) columnVisibility.value = parsed.columnVisibility
-      if (parsed.columnOrder) columnOrder.value = parsed.columnOrder
+      if (parsed.columnOrder) {
+        const savedOrder = parsed.columnOrder as string[]
+        const allColumnIds = columns.map((c) => c.id as string)
+        const missing = allColumnIds.filter((id) => !savedOrder.includes(id))
+        columnOrder.value = [...savedOrder, ...missing]
+      }
       if (parsed.pageSize) pagination.value.pageSize = parsed.pageSize
     } catch (e) {
       console.error('Failed to parse saved table settings', e)
@@ -143,6 +168,7 @@ onMounted(() => {
 
   if (authStore.token) {
     loadExpenses()
+    loadCategories()
   }
 })
 
@@ -314,6 +340,29 @@ interface FetchRecurringExpensesParams {
   name?: string
 }
 
+const loadCategories = async () => {
+  if (!authStore.token) return
+  if (authStore.isTokenExpired) {
+    await authStore.refresh()
+  }
+  if (!authStore.token) return
+
+  try {
+    const result = await $fetch<RecurringCategoryCollection>('recurring_categories', {
+      baseURL: config.public.apiUrl,
+      credentials: 'include',
+      headers: {
+        Authorization: `Bearer ${authStore.token}`,
+        Accept: 'application/ld+json',
+      },
+    })
+
+    categories.value = result?.['hydra:member'] ?? result?.member ?? []
+  } catch (err) {
+    console.error('Could not load categories.', err)
+  }
+}
+
 const loadExpenses = async () => {
   if (!authStore.token) return
   if (authStore.isTokenExpired) {
@@ -364,7 +413,10 @@ watch(debouncedSearch, () => {
 })
 
 watch(() => authStore.token, (token) => {
-  if (token) loadExpenses()
+  if (token) {
+    loadExpenses()
+    loadCategories()
+  }
 })
 </script>
 

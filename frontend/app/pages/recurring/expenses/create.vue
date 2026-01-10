@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import PageTitle from '~/components/PageTitle.vue'
-import type { RecurringExpense, RecurringInterval } from '~/types/recurring'
+import type { RecurringCategory, RecurringCategoryCollection, RecurringExpense, RecurringInterval } from '~/types/recurring'
 
 definePageMeta({
   layout: 'default',
@@ -26,12 +26,51 @@ const form = reactive({
   currency: 'EUR',
   interval: 'monthly' as RecurringInterval,
   nextBillingDate: '',
+  category: '',
   notes: '',
   isActive: true,
 })
 
 const formError = ref<string | null>(null)
 const isSubmitting = ref(false)
+const categories = ref<RecurringCategory[]>([])
+const categoriesLoading = ref(false)
+const categoriesError = ref<string | null>(null)
+
+const getCategoryIri = (category: RecurringCategory) => {
+  return category['@id'] ?? (category.id ? `/api/recurring_categories/${category.id}` : '')
+}
+
+const loadCategories = async () => {
+  categoriesLoading.value = true
+  categoriesError.value = null
+
+  try {
+    if (authStore.isTokenExpired) {
+      await authStore.refresh()
+    }
+    if (!authStore.token) {
+      authStore.logout()
+      return
+    }
+
+    const result = await $fetch<RecurringCategoryCollection>('recurring_categories', {
+      baseURL: config.public.apiUrl,
+      credentials: 'include',
+      headers: {
+        Authorization: `Bearer ${authStore.token}`,
+        Accept: 'application/ld+json',
+      },
+    })
+
+    categories.value = result?.['hydra:member'] ?? result?.member ?? []
+  } catch (err: unknown) {
+    const message = (err as { data?: Record<string, unknown> })?.data?.['hydra:description'] as string
+    categoriesError.value = message || 'Could not load categories.'
+  } finally {
+    categoriesLoading.value = false
+  }
+}
 
 const goBack = () => {
   router.push('/recurring/expenses')
@@ -77,6 +116,7 @@ const submitExpense = async () => {
         currency: form.currency.toUpperCase(),
         interval: form.interval,
         nextBillingDate: new Date(`${form.nextBillingDate}T00:00:00`).toISOString(),
+        category: form.category || null,
         notes: form.notes || null,
         isActive: form.isActive,
       },
@@ -90,6 +130,10 @@ const submitExpense = async () => {
     isSubmitting.value = false
   }
 }
+
+onMounted(() => {
+  loadCategories()
+})
 </script>
 
 <template>
@@ -148,6 +192,30 @@ const submitExpense = async () => {
                       </option>
                     </select>
                   </div>
+                </div>
+
+                <div class="space-y-2">
+                  <label class="fieldset-label" for="category">Category</label>
+                  <select
+                    id="category"
+                    v-model="form.category"
+                    class="select w-full"
+                    :disabled="categoriesLoading"
+                  >
+                    <option value="">
+                      Uncategorized
+                    </option>
+                    <option
+                      v-for="category in categories"
+                      :key="category['@id'] ?? category.id"
+                      :value="getCategoryIri(category)"
+                    >
+                      {{ category.name }}
+                    </option>
+                  </select>
+                  <p v-if="categoriesError" class="text-sm text-error">
+                    {{ categoriesError }}
+                  </p>
                 </div>
 
                 <div class="space-y-2">

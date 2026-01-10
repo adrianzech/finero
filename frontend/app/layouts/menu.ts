@@ -23,4 +23,10 @@ export const menuItems: ISidebarMenuItem[] = [
     label: 'Recurring Expenses',
     url: '/recurring/expenses',
   },
+  {
+    id: 'recurring-categories',
+    icon: 'lucide--tag',
+    label: 'Recurring Categories',
+    url: '/recurring/categories',
+  },
 ]
