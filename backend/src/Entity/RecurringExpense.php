@@ -76,6 +76,11 @@ class RecurringExpense
     #[Groups(['recurring_expense:read', 'recurring_expense:write'])]
     private ?\DateTimeImmutable $nextBillingDate = null;
 
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    #[Groups(['recurring_expense:read', 'recurring_expense:write'])]
+    private ?RecurringCategory $category = null;
+
     #[ORM\Column]
     private bool $isActive = true;
 
@@ -160,6 +165,18 @@ class RecurringExpense
     public function setNextBillingDate(\DateTimeImmutable $nextBillingDate): static
     {
         $this->nextBillingDate = $nextBillingDate;
+
+        return $this;
+    }
+
+    public function getCategory(): ?RecurringCategory
+    {
+        return $this->category;
+    }
+
+    public function setCategory(?RecurringCategory $category): static
+    {
+        $this->category = $category;
 
         return $this;
     }
