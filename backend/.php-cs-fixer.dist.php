@@ -10,6 +10,7 @@ $finder = (new PhpCsFixer\Finder())
     ->exclude('assets/vendor')
     ->notPath('src/Kernel.php')
     ->notPath('public/index.php')
+    ->notPath('config/reference.php')
     ->name('*.php');
 
 return (new PhpCsFixer\Config())
