@@ -15,22 +15,22 @@
     "@pinia/nuxt": "^0.11.3",
     "@tanstack/table-core": "^8.21.3",
     "@tanstack/vue-table": "^8.21.3",
-    "eslint": "^9.39.1",
+    "eslint": "^9.39.2",
     "nuxt": "^4.2.1",
     "pinia": "^3.0.4",
     "simplebar": "^6.3.3",
     "vue": "^3.5.25",
-    "vue-router": "^4.6.3"
+    "vue-router": "^4.6.4"
   },
   "devDependencies": {
-    "@iconify-json/hugeicons": "^1.2.18",
-    "@iconify-json/lucide": "^1.2.77",
-    "@iconify-json/ri": "^1.2.6",
+    "@iconify-json/hugeicons": "^1.2.22",
+    "@iconify-json/lucide": "^1.2.83",
+    "@iconify-json/ri": "^1.2.7",
     "@iconify/tailwind4": "^1.2.0",
-    "@nuxt/eslint": "^1.11.0",
-    "@tailwindcss/vite": "^4.1.17",
-    "@types/node": "^24.10.1",
-    "daisyui": "^5.5.8",
+    "@nuxt/eslint": "^1.12.1",
+    "@tailwindcss/vite": "^4.1.18",
+    "@types/node": "^24.10.6",
+    "daisyui": "^5.5.14",
     "tailwindcss": "^4.1.17",
     "tailwindcss-motion": "^1.1.1"
   }
